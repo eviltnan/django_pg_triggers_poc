@@ -1,2 +1,4 @@
 pip install -r requirements.txt
-apt install postgresql-plpython3
+sudo apt install postgresql-plpython3
+sudo -u postgres psql < create_db.sql
+./manage.py migrate
