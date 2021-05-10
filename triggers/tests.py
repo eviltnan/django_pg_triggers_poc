@@ -24,9 +24,16 @@ def test_simple_function(simple_function, db):
     assert row[0] == 20
 
 
-def test_generate_simple_pl_python_from_function():
-    def pymax(a: int, b: int) -> int:
-        raise NotImplemented
+def test_generate_simple_pl_python_from_function(db):
+    def pymax(a: int,
+              b: int) -> int:
+        if a > b:
+            return a
+        return b
 
     pl_python_function = build_pl_python(pymax)
-    raise NotImplemented
+    with connection.cursor() as cursor:
+        cursor.execute(pl_python_function)
+        cursor.execute('select pymax(10, 20)')
+        row = cursor.fetchone()
+    assert row[0] == 20
