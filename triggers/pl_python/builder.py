@@ -1,6 +1,8 @@
 import inspect
 from textwrap import dedent
 
+from django.db import connection
+
 type_mapper = {
     int: "integer"
 }
@@ -25,3 +27,9 @@ AS $$
 return {name}({','.join(signature.parameters.keys())})
 $$ LANGUAGE plpython3u
 """
+
+
+def install_function(f):
+    pl_python_function = build_pl_python(f)
+    with connection.cursor() as cursor:
+        cursor.execute(pl_python_function)
