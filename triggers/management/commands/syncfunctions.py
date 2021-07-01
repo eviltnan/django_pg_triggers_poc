@@ -7,9 +7,6 @@ from triggers.pl_python.builder import pl_functions, install_function
 class Command(BaseCommand):
     help = 'Syncs PL/Python functions, decorated with @plfunction'
 
-    def delete_function(self):
-        raise NotImplemented
-
     @transaction.atomic
     def handle(self, *args, **options):
         if not pl_functions:
@@ -19,4 +16,3 @@ class Command(BaseCommand):
             self.stdout.write(f"Synching {function_name}")
             install_function(f)
             self.stdout.write(f"Installed {function_name}")
-

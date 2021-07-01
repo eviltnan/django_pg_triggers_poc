@@ -19,7 +19,7 @@ def build_pl_python(f):
     except KeyError:
         raise RuntimeError(f"Function {f} must be fully annotated to be translated to pl/python")
 
-    header = f"CREATE FUNCTION {name} ({','.join(args)}) RETURNS {type_mapper[signature.return_annotation]}"
+    header = f"CREATE OR REPLACE FUNCTION {name} ({','.join(args)}) RETURNS {type_mapper[signature.return_annotation]}"
 
     body = inspect.getsource(f)
     return f"""{header}

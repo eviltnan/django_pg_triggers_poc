@@ -1,5 +1,5 @@
 from django.db import connection
-from django.db.models import Func, Value, F
+from django.db.models import Func, F
 from pytest import fixture
 
 from triggers.models import Book
@@ -60,4 +60,5 @@ def test_decorator_registers():
         if a > b:
             return a
         return b
+
     assert pymax in pl_functions.values()
