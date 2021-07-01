@@ -2,3 +2,5 @@ django
 psycopg2
 pytest
 pytest-django
+django-extensions
+ipython
