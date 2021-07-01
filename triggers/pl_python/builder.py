@@ -22,6 +22,7 @@ def build_pl_python(f):
     header = f"CREATE OR REPLACE FUNCTION {name} ({','.join(args)}) RETURNS {type_mapper[signature.return_annotation]}"
 
     body = inspect.getsource(f)
+    body = body.replace("@plfunction", "") # quick hack for now
     return f"""{header}
 AS $$
 {dedent(body)}
