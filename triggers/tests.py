@@ -3,7 +3,7 @@ from django.db.models import Func, Value, F
 from pytest import fixture
 
 from triggers.models import Book
-from triggers.pl_python.builder import build_pl_python, install_function
+from triggers.pl_python.builder import build_pl_python, install_function, plfunction, pl_functions
 
 
 @fixture
@@ -51,3 +51,13 @@ def test_call_simple_function_from_django_orm(simple_function, book):
         max_value=Func(F('amount_sold'), F('amount_stock'), function='pymax')
     )
     assert result[0].max_value == result[0].amount_stock
+
+
+def test_decorator_registers():
+    @plfunction
+    def pymax(a: int,
+              b: int) -> int:
+        if a > b:
+            return a
+        return b
+    assert pymax in pl_functions.values()

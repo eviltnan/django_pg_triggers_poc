@@ -1,4 +1,5 @@
 import inspect
+from functools import wraps
 from textwrap import dedent
 
 from django.db import connection
@@ -33,3 +34,15 @@ def install_function(f):
     pl_python_function = build_pl_python(f)
     with connection.cursor() as cursor:
         cursor.execute(pl_python_function)
+
+
+pl_functions = {}
+
+
+def plfunction(f):
+    @wraps(f)
+    def installed_func(*args, **kwargs):
+        return f(*args, **kwargs)
+    module = inspect.getmodule(installed_func)
+    pl_functions[f"{module.__name__}.{installed_func.__qualname__}"] = installed_func
+    return installed_func
