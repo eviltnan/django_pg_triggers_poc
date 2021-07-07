@@ -4,6 +4,7 @@
 
 - python 3.9.x
 - binaries (postgres python3 extension) -> install_binaries.sh
+- postgres 10
 
 ## Comments
 
