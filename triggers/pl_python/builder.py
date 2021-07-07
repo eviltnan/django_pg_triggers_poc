@@ -9,7 +9,7 @@ type_mapper = {
 }
 
 
-def build_pl_python(f):
+def build_pl_function(f):
     name = f.__name__
     signature = inspect.signature(f)
     try:
@@ -31,8 +31,23 @@ $$ LANGUAGE plpython3u
 """
 
 
+def build_pl_trigger_function(f):
+    name = f.__name__
+
+    header = f"CREATE OR REPLACE FUNCTION {name}() RETURNS TRIGGER"
+
+    body = inspect.getsource(f)
+    body = body.replace("@pltrigger", "")  # quick hack for now
+    return f"""{header}
+AS $$
+{dedent(body)}
+return {name}(TD)
+$$ LANGUAGE plpython3u
+"""
+
+
 def install_function(f):
-    pl_python_function = build_pl_python(f)
+    pl_python_function = build_pl_function(f)
     with connection.cursor() as cursor:
         cursor.execute(pl_python_function)
 
@@ -44,6 +59,11 @@ def plfunction(f):
     @wraps(f)
     def installed_func(*args, **kwargs):
         return f(*args, **kwargs)
+
     module = inspect.getmodule(installed_func)
     pl_functions[f"{module.__name__}.{installed_func.__qualname__}"] = installed_func
     return installed_func
+
+
+def pltrigger():
+    raise NotImplementedError

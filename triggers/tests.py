@@ -3,7 +3,8 @@ from django.db.models import Func, F
 from pytest import fixture
 
 from triggers.models import Book
-from triggers.pl_python.builder import build_pl_python, install_function, plfunction, pl_functions
+from triggers.pl_python.builder import build_pl_function, install_function, plfunction, pl_functions, \
+    build_pl_trigger_function
 
 
 @fixture
@@ -33,7 +34,7 @@ def pymax(a: int,
 
 
 def test_generate_simple_pl_python_from_function(db):
-    pl_python_function = build_pl_python(pymax)
+    pl_python_function = build_pl_function(pymax)
     with connection.cursor() as cursor:
         cursor.execute(pl_python_function)
         cursor.execute('select pymax(10, 20)')
@@ -62,3 +63,15 @@ def test_decorator_registers():
         return b
 
     assert pymax in pl_functions.values()
+
+
+def pytrigger(td):
+    raise Exception(td)
+
+
+def test_generate_trigger_function(db):
+    pl_python_trigger_function = build_pl_trigger_function(pytrigger)
+    with connection.cursor() as cursor:
+        cursor.execute(pl_python_trigger_function)
+
+    raise NotImplementedError
