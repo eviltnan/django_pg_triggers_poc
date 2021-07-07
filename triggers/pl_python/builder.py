@@ -9,6 +9,12 @@ type_mapper = {
 }
 
 
+def remove_decorator(source_code, name):
+    start = source_code.find(f"@{name}")
+    end = source_code.find("def")
+    return source_code[:start] + source_code[end:]
+
+
 def build_pl_function(f):
     name = f.__name__
     signature = inspect.signature(f)
@@ -21,8 +27,7 @@ def build_pl_function(f):
 
     header = f"CREATE OR REPLACE FUNCTION {name} ({','.join(args)}) RETURNS {type_mapper[signature.return_annotation]}"
 
-    body = inspect.getsource(f)
-    body = body.replace("@plfunction", "")  # quick hack for now
+    body = remove_decorator(inspect.getsource(f), "plfunction")
     return f"""{header}
 AS $$
 {dedent(body)}
@@ -36,9 +41,7 @@ def build_pl_trigger_function(f, event, when, table):
 
     header = f"CREATE OR REPLACE FUNCTION {name}() RETURNS TRIGGER"
 
-    body = inspect.getsource(f)
-    body = body.replace("@pltrigger", "")  # quick hack for now
-
+    body = remove_decorator(inspect.getsource(f), "pltrigger")
     trigger = f"""
 BEGIN;
 CREATE TRIGGER {name + '_trigger'}
@@ -57,8 +60,9 @@ END;
 """
 
 
-def install_function(f, trigger=False):
-    pl_python_function = build_pl_trigger_function() if trigger else build_pl_function(f)
+def install_function(f, trigger_params=None):
+    trigger_params = trigger_params or {}
+    pl_python_function = build_pl_trigger_function(f, **trigger_params) if trigger_params else build_pl_function(f)
     with connection.cursor() as cursor:
         cursor.execute(pl_python_function)
 
