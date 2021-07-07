@@ -1,6 +1,6 @@
 from django.db.models import Model, CharField, IntegerField, Func, F
 
-from triggers.pl_python.builder import plfunction
+from triggers.pl_python.builder import plfunction, pltrigger
 
 
 @plfunction
@@ -9,6 +9,13 @@ def pymax(a: int,
     if a > b:
         return a
     return b
+
+
+@pltrigger(event="INSERT",
+           when="BEFORE",
+           table="triggers_book")
+def pytrigger(td, plpy):
+    td['new']['name'] = td['new']['name'] + 'test'
 
 
 class Book(Model):

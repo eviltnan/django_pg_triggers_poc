@@ -23,3 +23,4 @@
 
 - add sorting example with a custom python function
 - performance issues? compare pl sql and python
+- plpy example for triggers
