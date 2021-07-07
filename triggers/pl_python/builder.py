@@ -12,6 +12,8 @@ type_mapper = {
 def remove_decorator(source_code, name):
     start = source_code.find(f"@{name}")
     end = source_code.find("def")
+    if start < 0:
+        return source_code
     return source_code[:start] + source_code[end:]
 
 
