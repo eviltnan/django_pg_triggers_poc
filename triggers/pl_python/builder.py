@@ -42,20 +42,20 @@ def build_pl_trigger_function(f, event, when, table):
     header = f"CREATE OR REPLACE FUNCTION {name}() RETURNS TRIGGER"
 
     body = remove_decorator(inspect.getsource(f), "pltrigger")
-    trigger = f"""
+    return f"""
 BEGIN;
-CREATE TRIGGER {name + '_trigger'}
-{when} {event} ON {table}
-FOR EACH ROW
-EXECUTE PROCEDURE {name}()
-"""
-    return f"""{header}
+{header}
 AS $$
 {dedent(body)}
 {name}(TD, plpy)
 return 'MODIFY'
 $$ LANGUAGE plpython3u;
-{trigger};
+
+DROP TRIGGER IF EXISTS {name + '_trigger'} ON {table} CASCADE; 
+CREATE TRIGGER {name + '_trigger'}
+{when} {event} ON {table}
+FOR EACH ROW
+EXECUTE PROCEDURE {name}();
 END;
 """
 
