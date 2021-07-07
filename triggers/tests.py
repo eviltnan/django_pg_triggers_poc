@@ -65,8 +65,9 @@ def test_decorator_registers():
     assert pymax in pl_functions.values()
 
 
-def pytrigger(td):
-    raise Exception(td)
+def pytrigger(td, plpy):
+    td['new']['name'] = td['new']['name'] + 'test'
+    return 'MODIFY'
 
 
 def test_generate_trigger_function(db):
@@ -78,5 +79,6 @@ def test_generate_trigger_function(db):
     )
     with connection.cursor() as cursor:
         cursor.execute(pl_python_trigger_function)
-
-    raise NotImplementedError
+    book = Book.objects.create(name='book')
+    book.refresh_from_db()
+    assert book.name == 'booktest'

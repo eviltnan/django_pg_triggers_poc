@@ -49,7 +49,8 @@ EXECUTE PROCEDURE {name}()
     return f"""{header}
 AS $$
 {dedent(body)}
-return {name}(TD)
+{name}(TD, plpy)
+return 'MODIFY'
 $$ LANGUAGE plpython3u;
 {trigger};
 END;
