@@ -4,7 +4,7 @@ from pytest import fixture
 
 from triggers.models import Book
 from triggers.pl_python.builder import build_pl_function, install_function, plfunction, pl_functions, \
-    build_pl_trigger_function
+    build_pl_trigger_function, pltrigger, pl_triggers
 
 
 @fixture
@@ -54,7 +54,7 @@ def test_call_simple_function_from_django_orm(simple_function, book):
     assert result[0].max_value == result[0].amount_stock
 
 
-def test_decorator_registers():
+def test_plfunction_decorator_registers():
     @plfunction
     def pymax(a: int,
               b: int) -> int:
@@ -67,7 +67,6 @@ def test_decorator_registers():
 
 def pytrigger(td, plpy):
     td['new']['name'] = td['new']['name'] + 'test'
-    return 'MODIFY'
 
 
 def test_generate_trigger_function(db):
@@ -82,3 +81,15 @@ def test_generate_trigger_function(db):
     book = Book.objects.create(name='book')
     book.refresh_from_db()
     assert book.name == 'booktest'
+
+
+def test_pltrigger_decorator_registers():
+    @pltrigger(event="INSERT",
+               when="BEFORE",
+               table="triggers_book")
+    def pytrigger(td, plpy):
+        td['new']['name'] = td['new']['name'] + 'test'
+
+    f, params = list(pl_triggers.values())[0]
+    assert f is pytrigger
+    assert params == {'event': "INSERT", 'when': "BEFORE", 'table': "triggers_book"}

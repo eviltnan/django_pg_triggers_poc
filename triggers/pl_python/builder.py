@@ -31,7 +31,7 @@ $$ LANGUAGE plpython3u
 """
 
 
-def build_pl_trigger_function(f, event, when, table, trigger=None):
+def build_pl_trigger_function(f, event, when, table):
     name = f.__name__
 
     header = f"CREATE OR REPLACE FUNCTION {name}() RETURNS TRIGGER"
@@ -39,7 +39,7 @@ def build_pl_trigger_function(f, event, when, table, trigger=None):
     body = inspect.getsource(f)
     body = body.replace("@pltrigger", "")  # quick hack for now
 
-    trigger = trigger or f"""
+    trigger = f"""
 BEGIN;
 CREATE TRIGGER {name + '_trigger'}
 {when} {event} ON {table}
@@ -57,13 +57,14 @@ END;
 """
 
 
-def install_function(f):
-    pl_python_function = build_pl_function(f)
+def install_function(f, trigger=False):
+    pl_python_function = build_pl_trigger_function() if trigger else build_pl_function(f)
     with connection.cursor() as cursor:
         cursor.execute(pl_python_function)
 
 
 pl_functions = {}
+pl_triggers = {}
 
 
 def plfunction(f):
@@ -76,5 +77,14 @@ def plfunction(f):
     return installed_func
 
 
-def pltrigger():
-    raise NotImplementedError
+def pltrigger(**trigger_parameters):
+    def _pytrigger(f):
+        @wraps(f)
+        def installed_func(*args, **kwargs):
+            return f(*args, **kwargs)
+
+        module = inspect.getmodule(installed_func)
+        pl_triggers[f"{module.__name__}.{installed_func.__qualname__}"] = installed_func, trigger_parameters
+        return installed_func
+
+    return _pytrigger
