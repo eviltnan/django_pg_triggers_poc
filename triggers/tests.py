@@ -70,7 +70,12 @@ def pytrigger(td):
 
 
 def test_generate_trigger_function(db):
-    pl_python_trigger_function = build_pl_trigger_function(pytrigger)
+    pl_python_trigger_function = build_pl_trigger_function(
+        pytrigger,
+        event="INSERT",
+        when="BEFORE",
+        table="triggers_book"
+    )
     with connection.cursor() as cursor:
         cursor.execute(pl_python_trigger_function)
 

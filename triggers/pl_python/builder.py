@@ -22,7 +22,7 @@ def build_pl_function(f):
     header = f"CREATE OR REPLACE FUNCTION {name} ({','.join(args)}) RETURNS {type_mapper[signature.return_annotation]}"
 
     body = inspect.getsource(f)
-    body = body.replace("@plfunction", "") # quick hack for now
+    body = body.replace("@plfunction", "")  # quick hack for now
     return f"""{header}
 AS $$
 {dedent(body)}
@@ -31,18 +31,28 @@ $$ LANGUAGE plpython3u
 """
 
 
-def build_pl_trigger_function(f):
+def build_pl_trigger_function(f, event, when, table, trigger=None):
     name = f.__name__
 
     header = f"CREATE OR REPLACE FUNCTION {name}() RETURNS TRIGGER"
 
     body = inspect.getsource(f)
     body = body.replace("@pltrigger", "")  # quick hack for now
+
+    trigger = trigger or f"""
+BEGIN;
+CREATE TRIGGER {name + '_trigger'}
+{when} {event} ON {table}
+FOR EACH ROW
+EXECUTE PROCEDURE {name}()
+"""
     return f"""{header}
 AS $$
 {dedent(body)}
 return {name}(TD)
-$$ LANGUAGE plpython3u
+$$ LANGUAGE plpython3u;
+{trigger};
+END;
 """
 
 
