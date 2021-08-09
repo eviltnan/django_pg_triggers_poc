@@ -1,7 +1,8 @@
 import django
 from django.db import connection
-from django.db.models import Func, F
+from django.db.models import Func, F, Transform
 from pytest import fixture
+from django.db.models import IntegerField
 
 from triggers.models import Book
 from triggers.pl_python.builder import build_pl_function, install_function, plfunction, pl_functions, \
@@ -53,6 +54,21 @@ def test_call_simple_function_from_django_orm(simple_function, book):
         max_value=Func(F('amount_sold'), F('amount_stock'), function='pymax')
     )
     assert result[0].max_value == result[0].amount_stock
+
+
+def test_custom_lookup_with_function(simple_function, book):
+    def plsquare(a: int) -> int:
+        return a*a
+    install_function(plsquare)
+
+    class PySquare(Transform):
+        lookup_name = 'plsquare'
+        function = 'plsquare'
+
+    IntegerField.register_lookup(PySquare)
+    assert Book.objects.filter(amount_stock__plsquare=400).exists()
+    # of course also mixes with other lookups
+    assert Book.objects.filter(amount_stock__plsquare__gt=10).exists()
 
 
 def test_plfunction_decorator_registers():

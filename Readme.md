@@ -18,12 +18,13 @@
 + load virtualenv
 + load project
 + access ORM within function
-- some functions for django lookups?  
-- what about async?
++ some functions for django lookups?  
 - consistent naming
 
 # docs 
 
+- about python versions in postgres
+- how the code is installed
 - often django beginners misunderstand signals concept
 - add sorting example with a custom python function
 - plpy example for triggers
