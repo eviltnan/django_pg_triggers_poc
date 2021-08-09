@@ -125,3 +125,20 @@ def load_project():
 
     with connection.cursor() as cursor:
         cursor.execute(f"select pl_load_path('{path}')")
+
+
+@plfunction
+def pl_load_django(project_dir: str, django_settings_module: str):
+    import os, sys
+    from django.core.wsgi import get_wsgi_application
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', django_settings_module)
+    sys.path.append(project_dir)
+    get_wsgi_application()
+
+
+def load_django(setting_module):
+    load_env()
+    load_project()
+    install_function(pl_load_django)
+    with connection.cursor() as cursor:
+        cursor.execute(f"select pl_load_django('{settings.BASE_DIR}', '{setting_module}')")
