@@ -3,6 +3,7 @@ from distutils.sysconfig import get_python_lib
 from functools import wraps
 from textwrap import dedent
 
+from django.conf import settings
 from django.db import connection
 
 type_mapper = {
@@ -114,5 +115,13 @@ def load_env():
     """
     install_function(pl_load_path)
     path = get_python_lib()
+    with connection.cursor() as cursor:
+        cursor.execute(f"select pl_load_path('{path}')")
+
+
+def load_project():
+    install_function(pl_load_path)
+    path = settings.BASE_DIR
+
     with connection.cursor() as cursor:
         cursor.execute(f"select pl_load_path('{path}')")

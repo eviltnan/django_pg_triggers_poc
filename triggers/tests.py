@@ -5,7 +5,7 @@ from pytest import fixture
 
 from triggers.models import Book
 from triggers.pl_python.builder import build_pl_function, install_function, plfunction, pl_functions, \
-    build_pl_trigger_function, pltrigger, pl_triggers, load_env
+    build_pl_trigger_function, pltrigger, pl_triggers, load_env, load_project
 
 
 @fixture
@@ -108,3 +108,17 @@ def test_use_env(db):
         cursor.execute("select pl_test_use_env()")
         row = cursor.fetchone()
     assert row[0] == str(django.VERSION)
+
+
+def test_import_project(db):
+    load_project()
+
+    def pl_test_import_project() -> int:
+        import import_module
+        return import_module.pymax(10, 20)
+
+    install_function(pl_test_import_project)
+    with connection.cursor() as cursor:
+        cursor.execute("select pl_test_import_module()")
+        row = cursor.fetchone()
+    assert row[0] == 20
