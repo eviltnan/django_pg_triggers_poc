@@ -119,7 +119,7 @@ def test_import_project(db):
 
     install_function(pl_test_import_project)
     with connection.cursor() as cursor:
-        cursor.execute("select pl_test_import_module()")
+        cursor.execute("select pl_test_import_project()")
         row = cursor.fetchone()
     assert row[0] == 20
 
@@ -145,11 +145,11 @@ def pl_django(db):
 
 
 def test_trigger_model(pl_django):
-    def pytrigger_model(new, old, td, plpy):
+    def pytrigger(new, old, td, plpy):
         new.name = new.name + 'test'
 
     pl_python_trigger_function = build_pl_trigger_function(
-        pytrigger_model,
+        pytrigger,
         event="INSERT",
         when="BEFORE",
         model=Book,

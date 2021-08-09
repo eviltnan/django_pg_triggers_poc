@@ -57,13 +57,19 @@ def build_pl_trigger_function(f, event, when, table=None, model=None):
         app_name = meta.app_label
         import_statement = f"""
 from django.apps import apps
+from django.forms.models import model_to_dict
 {model_name} = apps.get_model('{app_name}', '{model_name}')
 new = {model_name}(**TD['new'])
 old = {model_name}(**TD['old']) if TD['old'] else None 
 """
         call_statement = f"{name}(new, old, TD, plpy)"
+        back_convert_statement = f"""
+TD['new'].update(model_to_dict(new))
+if TD['old']:
+    TD['old'].update(model_to_dict(old))
+"""
     else:
-        import_statement = ""
+        import_statement = back_convert_statement = ""
         call_statement = f"{name}(TD, plpy)"
 
     header = f"CREATE OR REPLACE FUNCTION {name}() RETURNS TRIGGER"
@@ -76,6 +82,7 @@ AS $$
 {import_statement}
 {dedent(body)}
 {call_statement}
+{back_convert_statement}
 return 'MODIFY'
 $$ LANGUAGE plpython3u;
 

@@ -28,6 +28,7 @@
 - plpy example for triggers
 - manage py commands
 - including ORM will only work when django project is on the same host, which is rare. the only real way is to install the whole code on the db host
+- there is certain danger of getting them out of hand
 
 # todo
 - finish up types mapping
