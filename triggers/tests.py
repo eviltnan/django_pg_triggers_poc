@@ -146,7 +146,7 @@ def pl_django(db):
 
 def test_trigger_model(pl_django):
     def pytrigger_model(new, old, td, plpy):
-        raise Exception(new)
+        new.name = new.name + 'test'
 
     pl_python_trigger_function = build_pl_trigger_function(
         pytrigger_model,

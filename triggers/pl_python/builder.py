@@ -58,7 +58,8 @@ def build_pl_trigger_function(f, event, when, table=None, model=None):
         import_statement = f"""
 from django.apps import apps
 {model_name} = apps.get_model('{app_name}', '{model_name}')
-new=old={model_name}
+new = {model_name}(**TD['new'])
+old = {model_name}(**TD['old']) if TD['old'] else None 
 """
         call_statement = f"{name}(new, old, TD, plpy)"
     else:

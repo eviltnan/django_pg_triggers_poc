@@ -27,6 +27,7 @@
 - add sorting example with a custom python function
 - plpy example for triggers
 - manage py commands
+- including ORM will only work when django project is on the same host, which is rare. the only real way is to install the whole code on the db host
 
 # todo
 - finish up types mapping
