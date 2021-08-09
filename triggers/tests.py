@@ -67,7 +67,9 @@ def test_plfunction_decorator_registers():
 
 
 def pytrigger(td, plpy):
+    # mind triggers don't return anything
     td['new']['name'] = td['new']['name'] + 'test'
+    td['new']['amount_sold'] = plpy.execute("SELECT count(*) FROM triggers_book")[0]['count']
 
 
 def test_generate_trigger_function(db):
@@ -79,9 +81,10 @@ def test_generate_trigger_function(db):
     )
     with connection.cursor() as cursor:
         cursor.execute(pl_python_trigger_function)
-    book = Book.objects.create(name='book')
+    book = Book.objects.create(name='book', amount_sold=1)
     book.refresh_from_db()
     assert book.name == 'booktest'
+    assert book.amount_sold == 0
 
 
 def test_pltrigger_decorator_registers():
@@ -145,7 +148,8 @@ def pl_django(db):
 
 
 def test_trigger_model(pl_django):
-    def pytrigger(new, old, td, plpy):
+    def pytrigger(new: Book, old: Book, td, plpy):
+        # don't use save method here, it will kill the database because of recursion
         new.name = new.name + 'test'
 
     pl_python_trigger_function = build_pl_trigger_function(

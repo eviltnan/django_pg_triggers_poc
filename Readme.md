@@ -24,6 +24,7 @@
 
 # docs 
 
+- often django beginners misunderstand signals concept
 - add sorting example with a custom python function
 - plpy example for triggers
 - manage py commands
