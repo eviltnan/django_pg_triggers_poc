@@ -5,7 +5,7 @@ from pytest import fixture
 
 from triggers.models import Book
 from triggers.pl_python.builder import build_pl_function, install_function, plfunction, pl_functions, \
-    build_pl_trigger_function, pltrigger, pl_triggers, load_env, load_project
+    build_pl_trigger_function, pltrigger, pl_triggers, load_env, load_project, load_django
 
 
 @fixture
@@ -122,3 +122,18 @@ def test_import_project(db):
         cursor.execute("select pl_test_import_module()")
         row = cursor.fetchone()
     assert row[0] == 20
+
+
+def test_initialize_django_project(db):
+    load_django("db_triggers_example.settings")
+
+    def pl_test_import_project() -> int:
+        from triggers.models import Book
+        # still uses tcp connection with postgres itself
+        return Book.objects.count()
+
+    install_function(pl_test_import_project)
+    with connection.cursor() as cursor:
+        cursor.execute("select pl_test_import_project()")
+        row = cursor.fetchone()
+    assert row[0] == 1

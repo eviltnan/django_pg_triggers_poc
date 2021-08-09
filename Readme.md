@@ -2,7 +2,7 @@
 
 ## Installation
 
-- python 3.9.x
+- python 3.6.9
 - binaries (postgres python3 extension) -> install_binaries.sh
 - postgres 10
 
@@ -17,16 +17,15 @@
 + install function with TD
 + load virtualenv
 + load project
-- access ORM within function
-- add/remove with migrations
++ access ORM within function
 - some functions for django lookups?  
 - what about async?
 
 # docs 
 
 - add sorting example with a custom python function
-- performance issues? compare pl sql and python
 - plpy example for triggers
+- manage py commands
 
 # todo
 - finish up types mapping

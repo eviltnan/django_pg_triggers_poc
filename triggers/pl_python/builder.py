@@ -142,3 +142,19 @@ def load_django(setting_module):
     install_function(pl_load_django)
     with connection.cursor() as cursor:
         cursor.execute(f"select pl_load_django('{settings.BASE_DIR}', '{setting_module}')")
+
+
+@plfunction
+def pl_python_version() -> str:
+    from platform import python_version
+    return python_version()
+
+
+def get_python_info():
+    install_function(pl_python_version)
+    with connection.cursor() as cursor:
+        cursor.execute(f"select pl_python_version()")
+        info = {
+            'version': cursor.fetchone()[0]
+        }
+    return info
