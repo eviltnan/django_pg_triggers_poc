@@ -1,10 +1,11 @@
+import django
 from django.db import connection
 from django.db.models import Func, F
 from pytest import fixture
 
 from triggers.models import Book
 from triggers.pl_python.builder import build_pl_function, install_function, plfunction, pl_functions, \
-    build_pl_trigger_function, pltrigger, pl_triggers
+    build_pl_trigger_function, pltrigger, pl_triggers, load_env
 
 
 @fixture
@@ -93,3 +94,17 @@ def test_pltrigger_decorator_registers():
     f, params = list(pl_triggers.values())[0]
     assert f.__name__ == 'pytrigger'
     assert params == {'event': "INSERT", 'when': "BEFORE", 'table': "triggers_book"}
+
+
+def test_use_env(db):
+    load_env()
+
+    def pl_test_use_env() -> str:
+        import django
+        return django.VERSION
+
+    install_function(pl_test_use_env)
+    with connection.cursor() as cursor:
+        cursor.execute("select pl_test_use_env()")
+        row = cursor.fetchone()
+    assert row[0] == str(django.VERSION)

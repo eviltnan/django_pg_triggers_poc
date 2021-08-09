@@ -1,11 +1,14 @@
 import inspect
+from distutils.sysconfig import get_python_lib
 from functools import wraps
 from textwrap import dedent
 
 from django.db import connection
 
 type_mapper = {
-    int: "integer"
+    int: "integer",
+    str: "varchar",
+    inspect._empty: "void"
 }
 
 
@@ -21,11 +24,14 @@ def build_pl_function(f):
     name = f.__name__
     signature = inspect.signature(f)
     try:
-        args = [
-            f"{arg} {type_mapper[specs.annotation]}" for arg, specs in signature.parameters.items()
-        ]
-    except KeyError:
-        raise RuntimeError(f"Function {f} must be fully annotated to be translated to pl/python")
+        args = []
+        for arg, specs in signature.parameters.items():
+            if specs.annotation not in type_mapper:
+                raise RuntimeError(f"Unknown type {specs.annotation}")
+            args.append(f"{arg} {type_mapper[specs.annotation]}")
+    except KeyError as ex:
+        raise RuntimeError(f"{ex}:"
+                           f"Function {f} must be fully annotated to be translated to pl/python")
 
     header = f"CREATE OR REPLACE FUNCTION {name} ({','.join(args)}) RETURNS {type_mapper[signature.return_annotation]}"
 
@@ -94,3 +100,19 @@ def pltrigger(**trigger_parameters):
         return installed_func
 
     return _pytrigger
+
+
+@plfunction
+def pl_load_path(syspath: str):
+    import sys
+    sys.path.append(syspath)
+
+
+def load_env():
+    """
+    Installs and loads the virtualenv of this project into the postgres interpreter.
+    """
+    install_function(pl_load_path)
+    path = get_python_lib()
+    with connection.cursor() as cursor:
+        cursor.execute(f"select pl_load_path('{path}')")

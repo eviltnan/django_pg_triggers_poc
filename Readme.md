@@ -15,9 +15,12 @@
 + install command
 + trigger (https://django-pgtrigger.readthedocs.io/en/latest/tutorial.html#keeping-a-field-in-sync-with-another)
 + install function with TD
++ load virtualenv
 - load project within interpreter
 - access ORM within function
 - add/remove with migrations
+- some functions for django lookups?  
+- what about async?
 
 # docs 
 
