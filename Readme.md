@@ -20,6 +20,7 @@
 + access ORM within function
 - some functions for django lookups?  
 - what about async?
+- consistent naming
 
 # docs 
 

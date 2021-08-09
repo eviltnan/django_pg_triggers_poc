@@ -45,8 +45,25 @@ $$ LANGUAGE plpython3u
 """
 
 
-def build_pl_trigger_function(f, event, when, table):
+def build_pl_trigger_function(f, event, when, table=None, model=None):
+    if not table and not model:
+        raise RuntimeError("Either model or table must be set for trigger installation")
+
     name = f.__name__
+    if model:
+        meta = model.objects.model._meta
+        table = meta.db_table
+        model_name = meta.object_name
+        app_name = meta.app_label
+        import_statement = f"""
+from django.apps import apps
+{model_name} = apps.get_model('{app_name}', '{model_name}')
+new=old={model_name}
+"""
+        call_statement = f"{name}(new, old, TD, plpy)"
+    else:
+        import_statement = ""
+        call_statement = f"{name}(TD, plpy)"
 
     header = f"CREATE OR REPLACE FUNCTION {name}() RETURNS TRIGGER"
 
@@ -55,8 +72,9 @@ def build_pl_trigger_function(f, event, when, table):
 BEGIN;
 {header}
 AS $$
+{import_statement}
 {dedent(body)}
-{name}(TD, plpy)
+{call_statement}
 return 'MODIFY'
 $$ LANGUAGE plpython3u;
 

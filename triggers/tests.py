@@ -137,3 +137,25 @@ def test_initialize_django_project(db):
         cursor.execute("select pl_test_import_project()")
         row = cursor.fetchone()
     assert row[0] == 1
+
+
+@fixture
+def pl_django(db):
+    load_django('db_triggers_example.settings')
+
+
+def test_trigger_model(pl_django):
+    def pytrigger_model(new, old, td, plpy):
+        raise Exception(new)
+
+    pl_python_trigger_function = build_pl_trigger_function(
+        pytrigger_model,
+        event="INSERT",
+        when="BEFORE",
+        model=Book,
+    )
+    with connection.cursor() as cursor:
+        cursor.execute(pl_python_trigger_function)
+    book = Book.objects.create(name='book')
+    book.refresh_from_db()
+    assert book.name == 'booktest'
