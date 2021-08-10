@@ -117,7 +117,7 @@ def plfunction(f):
 
 
 def pltrigger(**trigger_parameters):
-    def _pytrigger(f):
+    def _pl_trigger(f):
         @wraps(f)
         def installed_func(*args, **kwargs):
             return f(*args, **kwargs)
@@ -126,7 +126,7 @@ def pltrigger(**trigger_parameters):
         pl_triggers[f"{module.__name__}.{installed_func.__qualname__}"] = installed_func, trigger_parameters
         return installed_func
 
-    return _pytrigger
+    return _pl_trigger
 
 
 @plfunction

@@ -15,20 +15,20 @@ def book(db):
 
 
 @fixture
-def simple_function_pl():
+def pl_simple_function():
     with open('pl_python/simple_function.sql', 'r') as f:
         return f.read()
 
 
-def test_simple_function(simple_function_pl, db):
+def test_simple_function(pl_simple_function, db):
     with connection.cursor() as cursor:
-        cursor.execute(simple_function_pl)
-        cursor.execute('select pymax(10, 20)')
+        cursor.execute(pl_simple_function)
+        cursor.execute('select pl_max(10, 20)')
         row = cursor.fetchone()
     assert row[0] == 20
 
 
-def pymax(a: int,
+def pl_max(a: int,
           b: int) -> int:
     if a > b:
         return a
@@ -36,22 +36,22 @@ def pymax(a: int,
 
 
 def test_generate_simple_pl_python_from_function(db):
-    pl_python_function = build_pl_function(pymax)
+    pl_python_function = build_pl_function(pl_max)
     with connection.cursor() as cursor:
         cursor.execute(pl_python_function)
-        cursor.execute('select pymax(10, 20)')
+        cursor.execute('select pl_max(10, 20)')
         row = cursor.fetchone()
     assert row[0] == 20
 
 
 @fixture
 def simple_function(db):
-    install_function(pymax)
+    install_function(pl_max)
 
 
 def test_call_simple_function_from_django_orm(simple_function, book):
     result = Book.objects.annotate(
-        max_value=Func(F('amount_sold'), F('amount_stock'), function='pymax')
+        max_value=Func(F('amount_sold'), F('amount_stock'), function='pl_max')
     )
     assert result[0].max_value == result[0].amount_stock
 
@@ -73,16 +73,16 @@ def test_custom_lookup_with_function(simple_function, book):
 
 def test_plfunction_decorator_registers():
     @plfunction
-    def pymax(a: int,
+    def pl_max(a: int,
               b: int) -> int:
         if a > b:
             return a
         return b
 
-    assert pymax in pl_functions.values()
+    assert pl_max in pl_functions.values()
 
 
-def pytrigger(td, plpy):
+def pl_trigger(td, plpy):
     # mind triggers don't return anything
     td['new']['name'] = td['new']['name'] + 'test'
     td['new']['amount_sold'] = plpy.execute("SELECT count(*) FROM triggers_book")[0]['count']
@@ -90,7 +90,7 @@ def pytrigger(td, plpy):
 
 def test_generate_trigger_function(db):
     pl_python_trigger_function = build_pl_trigger_function(
-        pytrigger,
+        pl_trigger,
         event="INSERT",
         when="BEFORE",
         table="triggers_book"
@@ -107,11 +107,11 @@ def test_pltrigger_decorator_registers():
     @pltrigger(event="INSERT",
                when="BEFORE",
                table="triggers_book")
-    def pytrigger(td, plpy):
+    def pl_trigger(td, plpy):
         td['new']['name'] = td['new']['name'] + 'test'
 
     f, params = list(pl_triggers.values())[0]
-    assert f.__name__ == 'pytrigger'
+    assert f.__name__ == 'pl_trigger'
     assert params == {'event': "INSERT", 'when': "BEFORE", 'table': "triggers_book"}
 
 
@@ -134,7 +134,7 @@ def test_import_project(db):
 
     def pl_test_import_project() -> int:
         import import_module
-        return import_module.pymax(10, 20)
+        return import_module.pl_max(10, 20)
 
     install_function(pl_test_import_project)
     with connection.cursor() as cursor:
@@ -164,12 +164,12 @@ def pl_django(db):
 
 
 def test_trigger_model(pl_django):
-    def pytrigger(new: Book, old: Book, td, plpy):
+    def pl_trigger(new: Book, old: Book, td, plpy):
         # don't use save method here, it will kill the database because of recursion
         new.name = new.name + 'test'
 
     pl_python_trigger_function = build_pl_trigger_function(
-        pytrigger,
+        pl_trigger,
         event="INSERT",
         when="BEFORE",
         model=Book,

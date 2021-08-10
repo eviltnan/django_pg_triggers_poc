@@ -4,7 +4,7 @@ from triggers.pl_python.builder import plfunction, pltrigger
 
 
 @plfunction
-def pymax(a: int,
+def pl_max(a: int,
           b: int) -> int:
     if a > b:
         return a
@@ -14,7 +14,7 @@ def pymax(a: int,
 @pltrigger(event="INSERT",
            when="BEFORE",
            table="triggers_book")
-def pytrigger(td, plpy):
+def pl_trigger(td, plpy):
     td['new']['name'] = td['new']['name'] + 'test'
 
 
@@ -25,5 +25,5 @@ class Book(Model):
 
     def get_max(self):
         return Book.objects.annotate(
-            max_value=Func(F('amount_sold'), F('amount_stock'), function='pymax')
+            max_value=Func(F('amount_sold'), F('amount_stock'), function='pl_max')
         ).get(pk=self.pk).max_value
