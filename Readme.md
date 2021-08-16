@@ -3,12 +3,8 @@
 ## Installation
 
 - python 3.6.9
-- binaries (postgres python3 extension) -> install_binaries.sh
+- binaries (postgres python3 extension) -> setup.sh
 - postgres 10
-
-## Comments
-
-- not sure which python version is in the extension
 
 ## Steps
 + install simple python function
